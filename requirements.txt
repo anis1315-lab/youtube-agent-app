@@ -1,3 +1,10 @@
+Here are the complete, final versions of both requirements.txt and app.py.
+
+You can replace the entire content of each file with the code provided below.
+
+## requirements.txt
+This is the full list of packages your deployed app needs, with the new langchain-groq added.
+
 aiohappyeyeballs==2.6.1
 aiohttp==3.12.13
 aiosignal==1.3.2
@@ -31,6 +38,7 @@ jsonschema-specifications==2025.4.1
 langchain==0.3.26
 langchain-community==0.3.26
 langchain-core==0.3.67
+langchain-groq
 langchain-ollama==0.3.3
 langchain-text-splitters==0.3.8
 langsmith==0.4.4

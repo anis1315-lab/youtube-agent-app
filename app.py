@@ -5,16 +5,18 @@ from dotenv import load_dotenv
 from pexels_api import API
 import requests
 
-from langchain_ollama import ChatOllama
+from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-# --- 0. Load API Key ---
+# --- 0. Load API Keys ---
 load_dotenv()
 PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # --- 1. Agent Configuration ---
-llm = ChatOllama(model="llama3")
+# Set up the connection to the Groq cloud model
+llm = ChatGroq(model_name="llama3-8b-8192", groq_api_key=GROQ_API_KEY)
 output_parser = StrOutputParser()
 
 idea_generation_prompt = ChatPromptTemplate.from_template("Brainstorm 5 viral video ideas about {topic}. Provide catchy titles.")
@@ -34,9 +36,14 @@ with col1:
     st.subheader("Step 1: Generate Ideas")
     topic = st.text_input("Enter a broad topic:", key="topic_input")
     if st.button("Generate Ideas", key="generate_ideas_button"):
-        with st.spinner("🧠 Brainstorming ideas..."):
-            st.session_state.ideas = idea_generation_chain.invoke({"topic": topic})
-        st.success("Ideas generated!")
+        if not GROQ_API_KEY:
+            st.error("Groq API key not found. Please add it to your Streamlit secrets.")
+        elif topic:
+            with st.spinner("🧠 Brainstorming ideas..."):
+                st.session_state.ideas = idea_generation_chain.invoke({"topic": topic})
+            st.success("Ideas generated!")
+        else:
+            st.warning("Please enter a topic.")
 
 # == COLUMN 2: SCRIPT & VOICEOVER ==
 with col2:
@@ -49,8 +56,6 @@ with col2:
             with st.spinner("✍️ Writing script..."):
                 script = script_writing_chain.invoke({"video_title": selected_idea})
                 st.session_state.script = script
-                with open("video_script.txt", "w") as f:
-                    f.write(script)
 
             with st.spinner("🎙️ Creating voiceover..."):
                 async def create_voiceover(text):
@@ -68,7 +73,7 @@ with col3:
         keywords = st.text_input("Enter keywords from script:", key="keywords_input")
         if st.button("Find Videos", key="find_videos_button"):
             if not PEXELS_API_KEY:
-                st.error("Pexels API key not found.")
+                st.error("Pexels API key not found. Please add it to your Streamlit secrets.")
             elif keywords:
                 with st.spinner("🖼️ Searching for videos on Pexels..."):
                     try:
