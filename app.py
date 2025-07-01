@@ -95,9 +95,9 @@ with col3:
                         st.session_state.video_paths = []
                         for i, video_data in enumerate(videos_json):
                             video_files = video_data.get('video_files', [])
-                            video_link = next((f['link'] for f in video_files if f.get('width') == 1920), None) # Prefer 1080p
+                            video_link = next((f['link'] for f in video_files if f.get('width') == 1920), None)
                             if not video_link:
-                                video_link = video_files[0]['link'] # Fallback to first available
+                                video_link = video_files[0]['link']
 
                             file_path = f"videos/video_{i}.mp4"
                             with open(file_path, "wb") as f:
@@ -115,30 +115,27 @@ with col3:
                         video_paths = st.session_state.video_paths
                         output_path = "final_video.mp4"
 
-                        # Probe the audio file to get its duration
                         probe = ffmpeg.probe(audio_path)
                         audio_duration = float(probe['format']['duration'])
-
-                        # --- NEW SCALING AND PADDING LOGIC ---
+                        
                         width = 1920
                         height = 1080
                         
                         video_inputs = []
                         for path in video_paths:
-                            # Create an input stream and apply the scale/pad filter to each video
                             stream = ffmpeg.input(path)
-                            processed_stream = ffmpeg.filter(stream, 'scale', width, height, force_original_aspect_ratio='decrease')
-                            processed_stream = ffmpeg.filter(processed_stream, 'pad', width, height, -1, -1, 'black')
+                            # Apply all necessary filters to standardize the clips
+                            processed_stream = (
+                                stream.video
+                                .filter('scale', width, height, force_original_aspect_ratio='decrease')
+                                .filter('pad', width, height, -1, -1, 'black')
+                                .filter('setsar', '1')  # Set Sample Aspect Ratio to 1:1
+                            )
                             video_inputs.append(processed_stream)
-                        # --- END OF NEW LOGIC ---
 
-                        # Concatenate all processed video streams
                         stitched_video = ffmpeg.concat(*video_inputs, v=1, a=0)
-
-                        # Input the audio stream
                         audio_input = ffmpeg.input(audio_path)
 
-                        # Combine video with audio, trim to audio duration, and set codecs
                         ffmpeg.output(stitched_video, audio_input, output_path, vcodec='libx264', acodec='aac', t=audio_duration).overwrite_output().run(quiet=True)
                         st.session_state.final_video_ready = True
                     except ffmpeg.Error as e:
