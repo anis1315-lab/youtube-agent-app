@@ -4,10 +4,15 @@ import asyncio
 from dotenv import load_dotenv
 from pexels_api import API
 import requests
+import edge_tts
+import nest_asyncio
 
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+
+# Apply the patch for asyncio
+nest_asyncio.apply()
 
 # --- 0. Load API Keys ---
 load_dotenv()
@@ -15,7 +20,6 @@ PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # --- 1. Agent Configuration ---
-# Set up the connection to the Groq cloud model
 llm = ChatGroq(model_name="llama3-8b-8192", groq_api_key=GROQ_API_KEY)
 output_parser = StrOutputParser()
 
@@ -58,13 +62,12 @@ with col2:
                 st.session_state.script = script
 
             with st.spinner("🎙️ Creating voiceover..."):
-                # This function now correctly accepts the script's text as an argument
                 async def create_voiceover(text_to_speak):
                     VOICE = "en-US-GuyNeural"
                     communicate = edge_tts.Communicate(text_to_speak, VOICE, rate="+20%")
                     await communicate.save("voiceover.mp3")
 
-                # We now pass the 'script' variable into the function
+                # Run the async function
                 asyncio.run(create_voiceover(script))
                 st.session_state.audio_ready = True
             st.success("Script & Voiceover complete!")
