@@ -58,10 +58,13 @@ with col2:
                 st.session_state.script = script
 
             with st.spinner("🎙️ Creating voiceover..."):
-                async def create_voiceover(text):
+                # This function now correctly accepts the script's text as an argument
+                async def create_voiceover(text_to_speak):
                     VOICE = "en-US-GuyNeural"
-                    communicate = edge_tts.Communicate(text, VOICE, rate="+20%")
+                    communicate = edge_tts.Communicate(text_to_speak, VOICE, rate="+20%")
                     await communicate.save("voiceover.mp3")
+
+                # We now pass the 'script' variable into the function
                 asyncio.run(create_voiceover(script))
                 st.session_state.audio_ready = True
             st.success("Script & Voiceover complete!")
