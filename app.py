@@ -85,7 +85,8 @@ with col3:
                     try:
                         api = API(PEXELS_API_KEY)
                         search_term = keywords.split(',')[0].strip()
-                        api.search(search_term, page=1, results_per_page=5)
+                        # CORRECTED PEXELS API CALL TO SEARCH FOR VIDEOS
+                        api.videos_search(search_term, page=1, results_per_page=5)
                         videos = api.get_entries()
                         st.session_state.videos = videos
                     except Exception as e:
@@ -108,7 +109,6 @@ if 'videos' in st.session_state:
     with st.expander("View Found Visuals"):
         if st.session_state.videos:
             for video in st.session_state.videos:
-                # CORRECTED LINE
                 st.write(f"**Video by:** {video.photographer}")
                 video_file_link = next((f.link for f in video.video_files if f.quality != 'streaming'), None)
                 if video_file_link:
