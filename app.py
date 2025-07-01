@@ -2,7 +2,6 @@ import streamlit as st
 import os
 import asyncio
 from dotenv import load_dotenv
-from pexels_api import API
 import requests
 import edge_tts
 import nest_asyncio
@@ -83,12 +82,17 @@ with col3:
             elif keywords:
                 with st.spinner("🖼️ Searching for videos on Pexels..."):
                     try:
-                        api = API(PEXELS_API_KEY)
-                        search_term = keywords.split(',')[0].strip()
-                        # CORRECTED PEXELS API CALL
-                        api.search_videos(search_term, page=1, results_per_page=5)
-                        videos = api.get_entries()
-                        st.session_state.videos = videos
+                        # --- DIRECT PEXELS API CALL ---
+                        headers = {"Authorization": PEXELS_API_KEY}
+                        query = keywords.split(',')[0].strip()
+                        url = f"https://api.pexels.com/videos/search?query={query}&per_page=5"
+                        
+                        response = requests.get(url, headers=headers)
+                        response.raise_for_status()  # Raise an exception for bad status codes
+                        
+                        # The results are in a JSON list under the 'videos' key
+                        st.session_state.videos = response.json().get('videos', [])
+                        # --- END OF DIRECT API CALL ---
                     except Exception as e:
                         st.error(f"An error occurred: {e}")
                 st.success("Search complete!")
@@ -109,8 +113,11 @@ if 'videos' in st.session_state:
     with st.expander("View Found Visuals"):
         if st.session_state.videos:
             for video in st.session_state.videos:
-                st.write(f"**Video by:** {video.photographer}")
-                video_file_link = next((f.link for f in video.video_files if f.quality != 'streaming'), None)
+                # The data structure is now a dictionary, not an object
+                st.write(f"**Video by:** {video['user']['name']}")
+                # Find a high-quality video file link
+                video_files = video.get('video_files', [])
+                video_file_link = next((f['link'] for f in video_files if f.get('quality') != 'streaming'), None)
                 if video_file_link:
                     st.video(video_file_link)
                 st.write("---")

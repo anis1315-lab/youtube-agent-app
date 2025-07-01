@@ -32,11 +32,9 @@ langchain-groq
 langsmith
 nest-asyncio
 numpy
-ollama
 orjson
 packaging
 pandas
-pexels-api
 pillow
 pip
 protobuf
