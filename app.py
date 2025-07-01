@@ -85,8 +85,9 @@ with col3:
                     try:
                         api = API(PEXELS_API_KEY)
                         search_term = keywords.split(',')[0].strip()
-                        api.videos.search(search_term, page=1, per_page=5)
-                        videos = api.videos.get_entries()
+                        # CORRECTED PEXELS API CALL
+                        api.search(search_term, page=1, results_per_page=5)
+                        videos = api.get_entries()
                         st.session_state.videos = videos
                     except Exception as e:
                         st.error(f"An error occurred: {e}")
@@ -106,7 +107,14 @@ if 'script' in st.session_state:
 
 if 'videos' in st.session_state:
     with st.expander("View Found Visuals"):
-        for video in st.session_state.videos:
-            st.write(f"**Video by:** {video.user['name']}")
-            st.video(video.video_files[0].link)
-            st.write("---")
+        # Check if there are any videos found
+        if st.session_state.videos:
+            for video in st.session_state.videos:
+                st.write(f"**Video by:** {video.user['name']}")
+                # Find a high-quality video file link that is not the streaming link
+                video_file_link = next((f.link for f in video.video_files if f.quality != 'streaming'), None)
+                if video_file_link:
+                    st.video(video_file_link)
+                st.write("---")
+        else:
+            st.write("No videos found for that search term.")
