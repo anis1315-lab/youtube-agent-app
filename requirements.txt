@@ -1,10 +1,3 @@
-Here are the complete, final versions of both requirements.txt and app.py.
-
-You can replace the entire content of each file with the code provided below.
-
-## requirements.txt
-This is the full list of packages your deployed app needs, with the new langchain-groq added.
-
 aiohappyeyeballs==2.6.1
 aiohttp==3.12.13
 aiosignal==1.3.2
