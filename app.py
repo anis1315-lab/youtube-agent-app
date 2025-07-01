@@ -85,8 +85,8 @@ with col3:
                     try:
                         api = API(PEXELS_API_KEY)
                         search_term = keywords.split(',')[0].strip()
-                        # CORRECTED PEXELS API CALL TO SEARCH FOR VIDEOS
-                        api.videos_search(search_term, page=1, results_per_page=5)
+                        # CORRECTED PEXELS API CALL
+                        api.search(search_term, media_type='videos', page=1, results_per_page=5)
                         videos = api.get_entries()
                         st.session_state.videos = videos
                     except Exception as e:
