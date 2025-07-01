@@ -85,7 +85,6 @@ with col3:
                     try:
                         api = API(PEXELS_API_KEY)
                         search_term = keywords.split(',')[0].strip()
-                        # CORRECTED PEXELS API CALL
                         api.search(search_term, page=1, results_per_page=5)
                         videos = api.get_entries()
                         st.session_state.videos = videos
@@ -107,11 +106,10 @@ if 'script' in st.session_state:
 
 if 'videos' in st.session_state:
     with st.expander("View Found Visuals"):
-        # Check if there are any videos found
         if st.session_state.videos:
             for video in st.session_state.videos:
-                st.write(f"**Video by:** {video.user['name']}")
-                # Find a high-quality video file link that is not the streaming link
+                # CORRECTED LINE
+                st.write(f"**Video by:** {video.photographer}")
                 video_file_link = next((f.link for f in video.video_files if f.quality != 'streaming'), None)
                 if video_file_link:
                     st.video(video_file_link)
