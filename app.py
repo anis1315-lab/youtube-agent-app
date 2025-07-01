@@ -104,7 +104,7 @@ with col3:
                                 f.write(requests.get(video_link).content)
                             st.session_state.video_paths.append(file_path)
                     except Exception as e:
-                        st.error(f"An error occurred: {e}")
+                        st.error(f"An error occurred during download: {e}")
                 st.success(f"{len(st.session_state.video_paths)} videos downloaded successfully!")
 
         if 'video_paths' in st.session_state and st.session_state.video_paths:
@@ -119,10 +119,20 @@ with col3:
                         probe = ffmpeg.probe(audio_path)
                         audio_duration = float(probe['format']['duration'])
 
-                        # Create input streams for all video files
-                        video_inputs = [ffmpeg.input(path) for path in video_paths]
+                        # --- NEW SCALING AND PADDING LOGIC ---
+                        width = 1920
+                        height = 1080
+                        
+                        video_inputs = []
+                        for path in video_paths:
+                            # Create an input stream and apply the scale/pad filter to each video
+                            stream = ffmpeg.input(path)
+                            processed_stream = ffmpeg.filter(stream, 'scale', width, height, force_original_aspect_ratio='decrease')
+                            processed_stream = ffmpeg.filter(processed_stream, 'pad', width, height, -1, -1, 'black')
+                            video_inputs.append(processed_stream)
+                        # --- END OF NEW LOGIC ---
 
-                        # Concatenate all video streams (v=1 video, a=0 audio)
+                        # Concatenate all processed video streams
                         stitched_video = ffmpeg.concat(*video_inputs, v=1, a=0)
 
                         # Input the audio stream
